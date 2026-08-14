@@ -1,1 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+  <title>학생 QR 체크</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 30px 20px;
+      text-align: center;
+      background: #f7f7f7;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    #guide {
+      font-size: 18px;
+      margin-bottom: 25px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 500px;
+      margin: auto;
+      background: white;
+    }
+
+    #result {
+      margin: 25px auto;
+      padding: 25px;
+      max-width: 450px;
+      background: white;
+      border-radius: 16px;
+      font-size: 22px;
+      display: none;
+    }
+
+    #code {
+      font-size: 38px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>학생 QR 체크</h1>
+
+<div id="guide">
+  학생 QR을 카메라에 보여주세요.
+</div>
+
+<div id="reader"></div>
+
+<div id="result">
+  QR 인식 완료
+  <div id="code"></div>
+</div>
+
+<script>
+
+let locked = false;
+
+function onScanSuccess(decodedText) {
+
+  if (locked) return;
+
+  locked = true;
+
+  document.getElementById("result").style.display = "block";
+  document.getElementById("code").innerText = decodedText;
+
+  setTimeout(function() {
+    locked = false;
+  }, 2000);
+}
+
+const scanner = new Html5QrcodeScanner(
+  "reader",
+  {
+    fps: 10,
+    qrbox: {
+      width: 250,
+      height: 250
+    }
+  },
+  false
+);
+
+scanner.render(onScanSuccess);
+
+</script>
+
+</body>
+</html>
