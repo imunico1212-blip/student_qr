@@ -25,22 +25,18 @@ body {
   padding: 25px 18px;
 
   text-align: center;
-
   background: #f7f7f7;
 }
-
 
 h1 {
   font-size: 32px;
   margin-bottom: 8px;
 }
 
-
 #guide {
   font-size: 19px;
   margin-bottom: 20px;
 }
-
 
 #reader {
   width: 100%;
@@ -48,7 +44,6 @@ h1 {
   margin: auto;
   background: white;
 }
-
 
 #studentBox,
 #result {
@@ -58,24 +53,20 @@ h1 {
   max-width: 450px;
 
   margin: 24px auto;
-
   padding: 28px 20px;
 
   background: white;
-
   border-radius: 18px;
 }
 
-
-#studentName {
+#studentName,
+#resultName {
 
   font-size: 38px;
-
   font-weight: bold;
 
   margin-bottom: 20px;
 }
-
 
 button {
 
@@ -88,66 +79,35 @@ button {
   margin: 12px 0;
 
   border: 0;
-
   border-radius: 14px;
 
   font-size: 23px;
-
   font-weight: bold;
-
-  cursor: pointer;
 }
-
 
 #borrowButton {
   background: #e8f1ff;
 }
 
-
 #checkoutButton {
   background: #ededed;
 }
 
-
-#cancelButton {
-  background: #f5f5f5;
-  font-size: 18px;
-}
-
-
-#resultName {
-
-  font-size: 38px;
-
-  font-weight: bold;
-
-  margin-bottom: 12px;
-}
-
-
-#resultStatus {
-
+#status {
   font-size: 24px;
-
   font-weight: bold;
 }
 
-
-#bookTitle {
-
+#bookList {
   margin-top: 15px;
-
-  font-size: 22px;
+  font-size: 20px;
+  line-height: 1.6;
 }
-
 
 #resultTime {
-
   margin-top: 12px;
-
   font-size: 19px;
 }
-
 
 .error {
   color: #b00020;
@@ -166,7 +126,6 @@ button {
   학생 QR을 보여주세요.
 </div>
 
-
 <div id="reader"></div>
 
 
@@ -174,19 +133,14 @@ button {
 
   <div id="studentName"></div>
 
+  <button id="checkoutButton"
+          onclick="checkoutStudent()">
+    🏠 하원
+  </button>
+
   <button id="borrowButton"
           onclick="startBookMode()">
-    📚 책 빌리기
-  </button>
-
-  <button id="checkoutButton"
-          onclick="checkoutOnly()">
-    🏠 그냥 하원
-  </button>
-
-  <button id="cancelButton"
-          onclick="resetScanner()">
-    취소
+    📚 도서대출
   </button>
 
 </div>
@@ -196,11 +150,17 @@ button {
 
   <div id="resultName"></div>
 
-  <div id="resultStatus"></div>
+  <div id="status"></div>
 
-  <div id="bookTitle"></div>
+  <div id="bookList"></div>
 
   <div id="resultTime"></div>
+
+  <button id="continueCheckout"
+          style="display:none"
+          onclick="showStudentButtons()">
+    돌아가기
+  </button>
 
 </div>
 
@@ -214,11 +174,16 @@ const API_URL =
 let mode = "student";
 
 let currentStudentCode = "";
-
 let currentStudentName = "";
 
 let locked = false;
 
+let borrowedTitles = [];
+
+
+// --------------------------------------------------
+// QR 인식
+// --------------------------------------------------
 
 function onScanSuccess(decodedText) {
 
@@ -229,15 +194,12 @@ function onScanSuccess(decodedText) {
   const code =
     decodedText.trim().toUpperCase();
 
-
   if (mode === "student") {
-
     handleStudent(code);
+  }
 
-  } else if (mode === "book") {
-
+  else if (mode === "book") {
     handleBook(code);
-
   }
 }
 
@@ -254,24 +216,18 @@ async function handleStudent(code) {
   try {
 
     const response = await fetch(
-
       API_URL +
       "?action=student&code=" +
       encodeURIComponent(code)
-
     );
 
-    const data = await response.json();
-
+    const data =
+      await response.json();
 
     if (!data.success) {
-
       showError(data.message);
-
       return;
-
     }
-
 
     currentStudentCode =
       data.code;
@@ -279,121 +235,53 @@ async function handleStudent(code) {
     currentStudentName =
       data.name;
 
+    borrowedTitles = [];
 
     document.getElementById("reader").style.display =
       "none";
 
-
     document.getElementById("studentBox").style.display =
       "block";
-
 
     document.getElementById("studentName").innerText =
       data.name;
 
-
     document.getElementById("guide").innerText =
-      "하원 방법을 선택하세요.";
-
+      "원하는 항목을 선택하세요.";
 
   } catch (error) {
 
     showError(
       "학생 정보를 불러오지 못했습니다."
     );
-
   }
-
 }
 
 
 // --------------------------------------------------
-// 그냥 하원
-// --------------------------------------------------
-
-async function checkoutOnly() {
-
-  document.getElementById("studentBox").style.display =
-    "none";
-
-
-  showProcessing(
-    currentStudentName,
-    "하원 처리 중..."
-  );
-
-
-  try {
-
-    const response = await fetch(
-
-      API_URL +
-      "?action=checkout&code=" +
-      encodeURIComponent(currentStudentCode)
-
-    );
-
-
-    const data =
-      await response.json();
-
-
-    if (!data.success) {
-
-      showError(data.message);
-
-      return;
-
-    }
-
-
-    showResult(
-      data.name,
-      data.duplicate
-        ? "이미 오늘 하원했습니다."
-        : "✓ 하원 완료",
-      "",
-      data.time
-    );
-
-
-  } catch (error) {
-
-    showError(
-      "하원 처리에 실패했습니다."
-    );
-
-  }
-
-}
-
-
-// --------------------------------------------------
-// 책 대출 모드
+// 도서대출 버튼
 // --------------------------------------------------
 
 function startBookMode() {
 
   mode = "book";
-
   locked = false;
-
 
   document.getElementById("studentBox").style.display =
     "none";
 
+  document.getElementById("result").style.display =
+    "none";
 
   document.getElementById("reader").style.display =
     "block";
 
-
   document.getElementById("pageTitle").innerText =
-    "책 대출";
-
+    "도서대출";
 
   document.getElementById("guide").innerText =
     currentStudentName +
-    " 학생이 빌릴 책의 QR을 보여주세요.";
+    " 학생이 빌릴 책 QR을 보여주세요.";
 }
 
 
@@ -406,13 +294,12 @@ async function handleBook(bookCode) {
   document.getElementById("guide").innerText =
     "책 정보를 확인하고 있습니다...";
 
-
   try {
 
     const response = await fetch(
 
       API_URL +
-      "?action=borrowCheckout" +
+      "?action=borrow" +
       "&code=" +
       encodeURIComponent(currentStudentCode) +
       "&bookCode=" +
@@ -420,90 +307,83 @@ async function handleBook(bookCode) {
 
     );
 
-
     const data =
       await response.json();
 
-
     if (!data.success) {
-
-      if (data.alreadyCheckout) {
-
-        showResult(
-          data.name,
-          "이미 오늘 하원했습니다.",
-          "",
-          data.time
-        );
-
-        return;
-      }
-
-
       showError(data.message);
-
       return;
     }
 
+    if (!data.duplicate) {
+      borrowedTitles.push(data.title);
+    }
 
-    showResult(
-      data.name,
-      "✓ 대출 및 하원 완료",
-      "📖 " + data.title,
-      data.time
-    );
+    document.getElementById("reader").style.display =
+      "none";
 
+    document.getElementById("result").style.display =
+      "block";
+
+    document.getElementById("resultName").innerText =
+      currentStudentName;
+
+    document.getElementById("status").className = "";
+
+    document.getElementById("status").innerText =
+      data.duplicate
+        ? "이미 대출 처리된 책입니다."
+        : "✓ 대출 완료";
+
+    document.getElementById("bookList").innerText =
+      "📖 " + data.title;
+
+    document.getElementById("resultTime").innerText =
+      "";
+
+    document.getElementById("continueCheckout").style.display =
+      "block";
 
   } catch (error) {
 
     showError(
-      "대출 처리에 실패했습니다."
+      "도서대출 처리에 실패했습니다."
     );
-
   }
-
 }
 
 
 // --------------------------------------------------
-// 처리 중 표시
+// 다시 하원 / 도서대출 버튼
 // --------------------------------------------------
 
-function showProcessing(name, text) {
+function showStudentButtons() {
+
+  mode = "student";
+  locked = false;
+
+  document.getElementById("pageTitle").innerText =
+    "하원";
+
+  document.getElementById("guide").innerText =
+    "다음 작업을 선택하세요.";
 
   document.getElementById("reader").style.display =
     "none";
 
   document.getElementById("result").style.display =
+    "none";
+
+  document.getElementById("studentBox").style.display =
     "block";
-
-  document.getElementById("resultName").innerText =
-    name;
-
-  document.getElementById("resultStatus").innerText =
-    text;
-
-  document.getElementById("bookTitle").innerText =
-    "";
-
-  document.getElementById("resultTime").innerText =
-    "";
 }
 
 
 // --------------------------------------------------
-// 결과 표시
+// 하원 버튼
 // --------------------------------------------------
 
-function showResult(
-  name,
-  status,
-  book,
-  time
-) {
-
-  document.getElementById("reader").style.display =
-    "none";
+async function checkoutStudent() {
 
   document.getElementById("studentBox").style.display =
     "none";
@@ -511,31 +391,76 @@ function showResult(
   document.getElementById("result").style.display =
     "block";
 
-
   document.getElementById("resultName").innerText =
-    name;
+    currentStudentName;
 
+  document.getElementById("status").innerText =
+    "하원 처리 중...";
 
-  document.getElementById("resultStatus").className =
+  document.getElementById("bookList").innerText =
     "";
 
-
-  document.getElementById("resultStatus").innerText =
-    status;
-
-
-  document.getElementById("bookTitle").innerText =
-    book || "";
-
-
   document.getElementById("resultTime").innerText =
-    time ? "하원시간 " + time : "";
+    "";
+
+  document.getElementById("continueCheckout").style.display =
+    "none";
 
 
-  setTimeout(
-    resetScanner,
-    4000
-  );
+  try {
+
+    const response = await fetch(
+
+      API_URL +
+      "?action=checkout&code=" +
+      encodeURIComponent(currentStudentCode)
+
+    );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      showError(data.message);
+      return;
+    }
+
+    document.getElementById("status").innerText =
+      data.duplicate
+        ? "이미 오늘 하원했습니다."
+        : "✓ 하원 완료";
+
+    if (data.books && data.books.length > 0) {
+
+      document.getElementById("bookList").innerHTML =
+        "오늘 대출한 책<br>" +
+        data.books.map(
+          title => "📖 " + title
+        ).join("<br>");
+
+    } else {
+
+      document.getElementById("bookList").innerText =
+        "";
+    }
+
+    document.getElementById("resultTime").innerText =
+      "하원시간 " + data.time;
+
+    // 나중에 이 지점에서 솔라피 문자 발송
+    // data.books 배열을 그대로 문자에 사용 가능
+
+    setTimeout(
+      resetAll,
+      4500
+    );
+
+  } catch (error) {
+
+    showError(
+      "하원 처리에 실패했습니다."
+    );
+  }
 }
 
 
@@ -554,70 +479,62 @@ function showError(message) {
   document.getElementById("result").style.display =
     "block";
 
-
   document.getElementById("resultName").innerText =
     "";
 
-
-  document.getElementById("resultStatus").className =
+  document.getElementById("status").className =
     "error";
 
-
-  document.getElementById("resultStatus").innerText =
+  document.getElementById("status").innerText =
     message;
 
-
-  document.getElementById("bookTitle").innerText =
+  document.getElementById("bookList").innerText =
     "";
-
 
   document.getElementById("resultTime").innerText =
     "";
 
+  document.getElementById("continueCheckout").style.display =
+    "none";
 
   setTimeout(
-    resetScanner,
+    resetAll,
     3500
   );
 }
 
 
 // --------------------------------------------------
-// 초기화
+// 완전 초기화
 // --------------------------------------------------
 
-function resetScanner() {
+function resetAll() {
 
   mode = "student";
 
   currentStudentCode = "";
-
   currentStudentName = "";
 
-  locked = false;
+  borrowedTitles = [];
 
+  locked = false;
 
   document.getElementById("pageTitle").innerText =
     "하원";
 
-
   document.getElementById("guide").innerText =
     "학생 QR을 보여주세요.";
-
 
   document.getElementById("reader").style.display =
     "block";
 
-
   document.getElementById("studentBox").style.display =
     "none";
-
 
   document.getElementById("result").style.display =
     "none";
 
-
-  document.getElementById("resultStatus").className =
+  document.getElementById("status").className =
     "";
 }
 
@@ -643,13 +560,12 @@ const scanner =
     },
 
     false
-  );
 
+  );
 
 scanner.render(onScanSuccess);
 
 </script>
 
 </body>
-
 </html>
