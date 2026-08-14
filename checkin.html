@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width,
+        initial-scale=1.0,
+        user-scalable=no">
+
+  <title>학생 등원</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+
+    body {
+      font-family: -apple-system,
+                   BlinkMacSystemFont,
+                   sans-serif;
+
+      margin: 0;
+      padding: 30px 20px;
+
+      text-align: center;
+
+      background: #f7f7f7;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    #guide {
+      font-size: 19px;
+      margin-bottom: 25px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 500px;
+      margin: auto;
+      background: white;
+    }
+
+    #result {
+
+      display: none;
+
+      max-width: 450px;
+
+      margin: 25px auto;
+
+      padding: 30px 20px;
+
+      background: white;
+
+      border-radius: 18px;
+    }
+
+    #name {
+
+      font-size: 40px;
+
+      font-weight: bold;
+
+      margin-bottom: 12px;
+    }
+
+    #status {
+
+      font-size: 25px;
+
+      font-weight: bold;
+    }
+
+    #time {
+
+      margin-top: 12px;
+
+      font-size: 19px;
+    }
+
+    .duplicate {
+      font-size: 23px;
+    }
+
+    .error {
+      font-size: 22px;
+      color: #b00020;
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+<h1>등원</h1>
+
+<div id="guide">
+  학생 QR을 보여주세요.
+</div>
+
+<div id="reader"></div>
+
+
+<div id="result">
+
+  <div id="name"></div>
+
+  <div id="status"></div>
+
+  <div id="time"></div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbyx8L6wf-PMZMQYBd1_ViAUiJ65ByHW4N7_Sq2ItXKbFSOW69MpV6boP81GX_wuiKnt5A/exec";
+
+
+let locked = false;
+
+
+async function onScanSuccess(decodedText) {
+
+  if (locked) return;
+
+  locked = true;
+
+
+  const code =
+    decodedText.trim().toUpperCase();
+
+
+  const result =
+    document.getElementById("result");
+
+  const name =
+    document.getElementById("name");
+
+  const status =
+    document.getElementById("status");
+
+  const time =
+    document.getElementById("time");
+
+
+  result.style.display = "block";
+
+  name.innerText = "확인 중...";
+
+  status.innerText = "";
+
+  time.innerText = "";
+
+
+  try {
+
+    const response = await fetch(
+
+      API_URL +
+      "?action=checkin&code=" +
+      encodeURIComponent(code)
+
+    );
+
+
+    const data =
+      await response.json();
+
+
+    if (!data.success) {
+
+      name.innerText = "";
+
+      status.className = "error";
+
+      status.innerText =
+        data.message;
+
+
+    } else if (data.duplicate) {
+
+      name.innerText =
+        data.name;
+
+      status.className = "duplicate";
+
+      status.innerText =
+        "이미 오늘 등원했습니다.";
+
+      time.innerText =
+        "등원시간 " + data.time;
+
+
+    } else {
+
+      name.innerText =
+        data.name;
+
+      status.className = "";
+
+      status.innerText =
+        "✓ 등원 완료";
+
+      time.innerText =
+        data.time;
+
+    }
+
+
+  } catch (error) {
+
+    name.innerText = "";
+
+    status.className = "error";
+
+    status.innerText =
+      "등원 처리에 실패했습니다.";
+
+  }
+
+
+  // 같은 QR이 계속 보이면서
+  // 반복 입력되는 것 방지
+  setTimeout(function() {
+
+    locked = false;
+
+    result.style.display = "none";
+
+    name.innerText = "";
+
+    status.innerText = "";
+
+    time.innerText = "";
+
+  }, 4000);
+
+}
+
+
+const scanner =
+  new Html5QrcodeScanner(
+
+    "reader",
+
+    {
+
+      fps: 10,
+
+      qrbox: {
+        width: 250,
+        height: 250
+      }
+
+    },
+
+    false
+
+  );
+
+
+scanner.render(onScanSuccess);
+
+</script>
+
+
+</body>
+
+</html>
