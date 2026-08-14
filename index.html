@@ -70,16 +70,44 @@
 
 <script>
 
+const API_URL = "https://script.google.com/macros/s/AKfycbyx8L6wf-PMZMQYBd1_ViAUiJ65ByHW4N7_Sq2ItXKbFSOW69MpV6boP81GX_wuiKnt5A/exec";
+
 let locked = false;
 
-function onScanSuccess(decodedText) {
-
+async function onScanSuccess(decodedText) {
   if (locked) return;
 
   locked = true;
 
+  const code = decodedText.trim().toUpperCase();
+
   document.getElementById("result").style.display = "block";
-  document.getElementById("code").innerText = decodedText;
+  document.getElementById("code").innerText = "확인 중...";
+
+  try {
+    const response = await fetch(
+      API_URL +
+      "?action=student&code=" +
+      encodeURIComponent(code)
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById("code").innerHTML =
+        data.name +
+        "<br><span style='font-size:20px'>" +
+        data.code +
+        "</span>";
+    } else {
+      document.getElementById("code").innerText =
+        data.message;
+    }
+
+  } catch (error) {
+    document.getElementById("code").innerText =
+      "학생 정보를 불러오지 못했습니다.";
+  }
 
   setTimeout(function() {
     locked = false;
