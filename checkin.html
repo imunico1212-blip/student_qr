@@ -35,7 +35,7 @@
 
     h1 {
       font-size: 32px;
-      margin-bottom: 8px;
+      margin: 0 0 8px;
     }
 
     #guide {
@@ -43,40 +43,39 @@
       margin-bottom: 20px;
     }
 
-    #readerWrap {
+    #cameraBox {
       width: 100%;
       max-width: 500px;
-      margin: auto;
+      height: 360px;
+      margin: 0 auto;
       background: #000;
-      border-radius: 16px;
+      border-radius: 18px;
       overflow: hidden;
       position: relative;
-      min-height: 340px;
     }
 
     #reader {
       width: 100%;
-      min-height: 340px;
+      height: 100%;
       background: #000;
     }
 
     #reader video {
-      display: block !important;
       width: 100% !important;
-      height: 340px !important;
+      height: 360px !important;
       object-fit: cover !important;
-      background: #000;
+      display: block !important;
     }
 
     #cameraMessage {
       position: absolute;
-      left: 15px;
-      right: 15px;
+      left: 20px;
+      right: 20px;
       top: 50%;
       transform: translateY(-50%);
       color: white;
       font-size: 18px;
-      z-index: 2;
+      z-index: 10;
       pointer-events: none;
     }
 
@@ -127,7 +126,6 @@
   </style>
 </head>
 
-
 <body>
 
   <h1>등원</h1>
@@ -136,7 +134,7 @@
     학생 QR을 보여주세요.
   </div>
 
-  <div id="readerWrap">
+  <div id="cameraBox">
 
     <div id="cameraMessage">
       카메라를 실행하는 중입니다.
@@ -150,15 +148,10 @@
     카메라 다시 켜기
   </button>
 
-
   <div id="result">
-
     <div id="name"></div>
-
     <div id="status"></div>
-
     <div id="time"></div>
-
   </div>
 
 
@@ -169,9 +162,7 @@ const API_URL =
 
 
 let locked = false;
-
 let html5QrCode = null;
-
 let cameraRunning = false;
 
 
@@ -182,10 +173,8 @@ async function onScanSuccess(decodedText) {
 
   locked = true;
 
-
   const code =
     decodedText.trim().toUpperCase();
-
 
   const result =
     document.getElementById("result");
@@ -203,27 +192,25 @@ async function onScanSuccess(decodedText) {
   result.style.display = "block";
 
   name.innerText = "확인 중...";
-
   status.className = "";
-
   status.innerText = "";
-
   time.innerText = "";
 
 
   try {
 
-    const response = await fetch(
+    const response =
+      await fetch(
 
-      API_URL +
-      "?action=checkin&code=" +
-      encodeURIComponent(code),
+        API_URL +
+        "?action=checkin&code=" +
+        encodeURIComponent(code),
 
-      {
-        cache: "no-store"
-      }
+        {
+          cache: "no-store"
+        }
 
-    );
+      );
 
 
     const data =
@@ -295,9 +282,7 @@ async function onScanSuccess(decodedText) {
     result.style.display = "none";
 
     name.innerText = "";
-
     status.innerText = "";
-
     time.innerText = "";
 
   }, 4000);
@@ -308,19 +293,19 @@ async function onScanSuccess(decodedText) {
 
 async function startCamera() {
 
-  const message =
+  const cameraMessage =
     document.getElementById("cameraMessage");
 
   const restartButton =
     document.getElementById("restartButton");
 
 
-  restartButton.style.display = "none";
+  cameraMessage.style.display = "block";
 
-  message.style.display = "block";
-
-  message.innerText =
+  cameraMessage.innerText =
     "카메라를 실행하는 중입니다.";
+
+  restartButton.style.display = "none";
 
 
   try {
@@ -333,52 +318,23 @@ async function startCamera() {
     }
 
 
-    if (cameraRunning) {
-
-      try {
-
-        await html5QrCode.stop();
-
-      }
-
-      catch (e) {
-      }
-
-      cameraRunning = false;
-
-    }
-
-
     await html5QrCode.start(
 
       {
-        facingMode: "environment"
+        facingMode: {
+          exact: "environment"
+        }
       },
 
       {
         fps: 10,
 
-        qrbox: function(
-          viewfinderWidth,
-          viewfinderHeight
-        ) {
+        qrbox: {
+          width: 240,
+          height: 240
+        },
 
-          const size =
-            Math.floor(
-              Math.min(
-                260,
-                viewfinderWidth * 0.7,
-                viewfinderHeight * 0.7
-              )
-            );
-
-
-          return {
-            width: size,
-            height: size
-          };
-
-        }
+        disableFlip: false
       },
 
       onScanSuccess,
@@ -391,7 +347,8 @@ async function startCamera() {
 
     cameraRunning = true;
 
-    message.style.display = "none";
+    cameraMessage.style.display =
+      "none";
 
 
     setTimeout(function() {
@@ -401,56 +358,96 @@ async function startCamera() {
           "#reader video"
         );
 
-
       if (video) {
 
         video.setAttribute(
           "playsinline",
-          "true"
+          ""
         );
 
         video.setAttribute(
           "webkit-playsinline",
-          "true"
+          ""
         );
 
         video.muted = true;
 
         video.autoplay = true;
 
-
-        video.play().catch(function(error) {
-
-          console.log(
-            "video play error",
-            error
-          );
-
+        video.play().catch(function() {
         });
 
       }
 
-    }, 400);
+    }, 300);
 
   }
 
   catch (error) {
 
     console.error(
-      "카메라 실행 오류",
+      "카메라 오류:",
       error
     );
 
 
-    cameraRunning = false;
+    /*
+      일부 아이폰은 exact environment
+      조건을 거부할 수 있어서
+      ideal 방식으로 한 번 더 시도
+    */
 
-    message.style.display = "block";
+    try {
 
-    message.innerText =
-      "카메라를 열지 못했습니다.\n카메라 권한을 확인해주세요.";
+      await html5QrCode.start(
 
-    restartButton.style.display =
-      "block";
+        {
+          facingMode: "environment"
+        },
+
+        {
+          fps: 10,
+
+          qrbox: {
+            width: 240,
+            height: 240
+          }
+        },
+
+        onScanSuccess,
+
+        function() {
+        }
+
+      );
+
+
+      cameraRunning = true;
+
+      cameraMessage.style.display =
+        "none";
+
+    }
+
+    catch (secondError) {
+
+      console.error(
+        "두 번째 카메라 오류:",
+        secondError
+      );
+
+      cameraRunning = false;
+
+      cameraMessage.style.display =
+        "block";
+
+      cameraMessage.innerText =
+        "카메라를 열 수 없습니다.\nSafari의 카메라 권한을 확인해주세요.";
+
+      restartButton.style.display =
+        "block";
+
+    }
 
   }
 
@@ -473,7 +470,7 @@ async function restartCamera() {
 
   }
 
-  catch (e) {
+  catch (error) {
   }
 
 
@@ -498,7 +495,7 @@ window.addEventListener(
 
       startCamera();
 
-    }, 500);
+    }, 400);
 
   }
 );
@@ -531,39 +528,13 @@ document.addEventListener(
         }
 
 
-        if (
-          video.readyState < 2 ||
-          video.paused
-        ) {
+        video.play().catch(function() {
 
-          video.play().catch(function() {
+          restartCamera();
 
-            restartCamera();
+        });
 
-          });
-
-        }
-
-      }, 700);
-
-    }
-
-  }
-);
-
-
-
-window.addEventListener(
-  "pageshow",
-  function(event) {
-
-    if (event.persisted) {
-
-      setTimeout(function() {
-
-        restartCamera();
-
-      }, 500);
+      }, 600);
 
     }
 
