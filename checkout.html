@@ -11,11 +11,12 @@
         user-scalable=no,
         viewport-fit=cover">
 
-  <title>학생 하원</title>
+  <title>도서대출 · 하원</title>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -31,6 +32,7 @@
       padding: 25px 18px;
 
       text-align: center;
+
       background: #f7f7f7;
     }
 
@@ -41,12 +43,11 @@
 
     #guide {
       font-size: 19px;
+      line-height: 1.5;
       margin-bottom: 20px;
     }
 
-    /* -------------------------
-       카메라
-    ------------------------- */
+    /* 카메라 */
 
     #cameraBox {
       width: 100%;
@@ -106,19 +107,16 @@
 
       max-width: 500px;
 
-      margin: 18px auto 0;
+      margin: 15px auto;
 
       background: #222;
       color: white;
     }
 
 
-    /* -------------------------
-       학생 / 결과
-    ------------------------- */
+    /* 카드 */
 
-    #studentBox,
-    #result {
+    .box {
       display: none;
 
       max-width: 450px;
@@ -134,11 +132,35 @@
 
     #studentName,
     #resultName {
-      font-size: 38px;
+      font-size: 36px;
       font-weight: bold;
 
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
+
+    #status {
+      font-size: 24px;
+      font-weight: bold;
+
+      margin-bottom: 15px;
+    }
+
+    #bookList {
+      font-size: 19px;
+      line-height: 1.7;
+
+      margin: 18px 0;
+
+      text-align: left;
+    }
+
+    #resultTime {
+      font-size: 19px;
+      margin-top: 12px;
+    }
+
+
+    /* 버튼 */
 
     button {
       display: block;
@@ -149,54 +171,45 @@
 
       margin: 12px 0;
 
-      border: 0;
+      border: none;
       border-radius: 14px;
 
-      font-size: 23px;
+      font-size: 22px;
       font-weight: bold;
 
       cursor: pointer;
     }
 
-    #borrowButton,
     #moreBorrowButton {
       background: #e8f1ff;
     }
 
-    #checkoutButton,
-    #finishCheckoutButton {
+    #finishBorrowButton {
       background: #ededed;
     }
 
-    #status {
-      font-size: 24px;
-      font-weight: bold;
+    #yesCheckoutButton {
+      background: #222;
+      color: white;
     }
 
-    #bookList {
-      margin-top: 15px;
-
-      font-size: 20px;
-
-      line-height: 1.6;
-    }
-
-    #resultTime {
-      margin-top: 12px;
-
-      font-size: 19px;
+    #noCheckoutButton {
+      background: #ededed;
     }
 
     .error {
       color: #b00020;
     }
+
   </style>
 </head>
 
 
 <body>
 
-<h1 id="pageTitle">하원</h1>
+<h1 id="pageTitle">
+  도서대출
+</h1>
 
 <div id="guide">
   학생 QR을 보여주세요.
@@ -221,45 +234,107 @@
 
 
 
-<div id="studentBox">
+<!-- 책 대출 결과 -->
+
+<div id="borrowResult"
+     class="box">
 
   <div id="studentName"></div>
 
-  <button id="checkoutButton"
-          onclick="checkoutStudent()">
-    🏠 하원
+  <div id="status"></div>
+
+  <div id="bookList"></div>
+
+  <button id="moreBorrowButton"
+          onclick="borrowMore()">
+
+    📚 더 대출하기
+
   </button>
 
-  <button id="borrowButton"
-          onclick="startBookMode()">
-    📚 도서대출
+  <button id="finishBorrowButton"
+          onclick="finishBorrow()">
+
+    ✅ 대출 완료
+
   </button>
 
 </div>
 
 
 
-<div id="result">
+<!-- 하원 확인 -->
+
+<div id="checkoutConfirm"
+     class="box">
 
   <div id="resultName"></div>
 
-  <div id="status"></div>
+  <div style="
+      font-size:24px;
+      font-weight:bold;
+      margin-bottom:20px;
+  ">
+    하원하시겠습니까?
+  </div>
 
-  <div id="bookList"></div>
+  <div id="confirmBookList"
+       style="
+       font-size:19px;
+       line-height:1.7;
+       text-align:left;
+       margin-bottom:22px;
+       ">
+  </div>
+
+  <button id="yesCheckoutButton"
+          onclick="checkoutStudent()">
+
+    네, 하원합니다
+
+  </button>
+
+  <button id="noCheckoutButton"
+          onclick="borrowMore()">
+
+    아니요, 책을 더 빌릴게요
+
+  </button>
+
+</div>
+
+
+
+<!-- 최종 결과 -->
+
+<div id="finalResult"
+     class="box">
+
+  <div id="finalName"
+       style="
+       font-size:36px;
+       font-weight:bold;
+       margin-bottom:15px;
+       ">
+  </div>
+
+  <div id="finalStatus"
+       style="
+       font-size:25px;
+       font-weight:bold;
+       ">
+  </div>
+
+  <div id="finalBooks"
+       style="
+       font-size:19px;
+       line-height:1.7;
+       margin-top:20px;
+       text-align:left;
+       ">
+  </div>
 
   <div id="resultTime"></div>
-
-  <button id="moreBorrowButton"
-          style="display:none"
-          onclick="startBookMode()">
-    📚 더 대출하기
-  </button>
-
-  <button id="finishCheckoutButton"
-          style="display:none"
-          onclick="checkoutStudent()">
-    🏠 하원하기
-  </button>
 
 </div>
 
@@ -271,19 +346,19 @@ const API_URL =
 "https://script.google.com/macros/s/AKfycbyx8L6wf-PMZMQYBd1_ViAUiJ65ByHW4N7_Sq2ItXKbFSOW69MpV6boP81GX_wuiKnt5A/exec";
 
 
+/* 상태 */
+
 let mode = "student";
 
 let currentStudentCode = "";
 let currentStudentName = "";
 
-let locked = false;
-
 let borrowedTitles = [];
 
+let locked = false;
 
-/* -------------------------
-   카메라 상태
-------------------------- */
+
+/* 카메라 */
 
 let html5QrCode = null;
 
@@ -293,13 +368,16 @@ let cameraStarting = false;
 
 
 
-/* ==================================================
+/* =========================================
    QR 인식
-================================================== */
+========================================= */
 
-function onScanSuccess(decodedText) {
+async function onScanSuccess(decodedText) {
 
   if (locked) return;
+
+  locked = true;
+
 
   const code =
     decodedText.trim().toUpperCase();
@@ -307,21 +385,17 @@ function onScanSuccess(decodedText) {
 
   if (mode === "student") {
 
-    locked = true;
+    await stopCamera();
 
-    stopCamera();
-
-    handleStudent(code);
+    await handleStudent(code);
 
   }
 
   else if (mode === "book") {
 
-    locked = true;
+    await stopCamera();
 
-    stopCamera();
-
-    handleBook(code);
+    await handleBook(code);
 
   }
 
@@ -329,9 +403,9 @@ function onScanSuccess(decodedText) {
 
 
 
-/* ==================================================
+/* =========================================
    카메라 시작
-================================================== */
+========================================= */
 
 async function startCamera() {
 
@@ -403,21 +477,16 @@ async function startCamera() {
 
 
           return {
-
             width: size,
             height: size
-
           };
 
-        },
-
-        disableFlip: false
+        }
       },
 
       onScanSuccess,
 
       function() {
-        /* QR 미인식은 정상 상태 */
       }
 
     );
@@ -425,13 +494,10 @@ async function startCamera() {
 
     cameraRunning = true;
 
+
     cameraMessage.style.display =
       "none";
 
-
-    /*
-      iPhone Safari 대응
-    */
 
     setTimeout(function() {
 
@@ -472,7 +538,7 @@ async function startCamera() {
   catch (error) {
 
     console.error(
-      "카메라 실행 오류:",
+      "카메라 오류:",
       error
     );
 
@@ -483,8 +549,10 @@ async function startCamera() {
     cameraMessage.style.display =
       "block";
 
+
     cameraMessage.innerText =
       "카메라를 열 수 없습니다.\n카메라 권한을 확인해주세요.";
+
 
     restartButton.style.display =
       "block";
@@ -501,9 +569,9 @@ async function startCamera() {
 
 
 
-/* ==================================================
-   카메라 정지
-================================================== */
+/* =========================================
+   카메라 중지
+========================================= */
 
 async function stopCamera() {
 
@@ -511,6 +579,8 @@ async function stopCamera() {
     !html5QrCode ||
     !cameraRunning
   ) {
+
+    cameraRunning = false;
 
     return;
 
@@ -525,10 +595,7 @@ async function stopCamera() {
 
   catch (error) {
 
-    console.log(
-      "카메라 정지:",
-      error
-    );
+    console.log(error);
 
   }
 
@@ -539,9 +606,9 @@ async function stopCamera() {
 
 
 
-/* ==================================================
+/* =========================================
    카메라 재시작
-================================================== */
+========================================= */
 
 async function restartCamera() {
 
@@ -558,14 +625,14 @@ async function restartCamera() {
 
 
 
-/* ==================================================
+/* =========================================
    학생 QR
-================================================== */
+========================================= */
 
 async function handleStudent(code) {
 
   document.getElementById("guide").innerText =
-    "학생 확인 중...";
+    "학생을 확인하고 있습니다...";
 
 
   try {
@@ -588,15 +655,15 @@ async function handleStudent(code) {
       await response.json();
 
 
-
     if (!data.success) {
 
-      showError(data.message);
+      showStudentError(
+        data.message
+      );
 
       return;
 
     }
-
 
 
     currentStudentCode =
@@ -607,34 +674,37 @@ async function handleStudent(code) {
 
     borrowedTitles = [];
 
-    mode = "menu";
+
+    /*
+      학생 확인 완료 후
+      바로 책 QR 모드
+    */
+
+    mode = "book";
+
+    locked = false;
 
 
-    document.getElementById("cameraBox").style.display =
-      "none";
-
-    document.getElementById("restartButton").style.display =
-      "none";
-
-    document.getElementById("result").style.display =
-      "none";
-
-    document.getElementById("studentBox").style.display =
-      "block";
-
-
-    document.getElementById("studentName").innerText =
-      data.name;
+    document.getElementById("pageTitle").innerText =
+      "도서대출";
 
 
     document.getElementById("guide").innerText =
-      "원하는 항목을 선택하세요.";
+      currentStudentName +
+      " 학생이 빌릴 책 QR을 보여주세요.";
+
+
+    setTimeout(function() {
+
+      startCamera();
+
+    }, 500);
 
   }
 
   catch (error) {
 
-    showError(
+    showStudentError(
       "학생 정보를 불러오지 못했습니다."
     );
 
@@ -644,51 +714,14 @@ async function handleStudent(code) {
 
 
 
-/* ==================================================
-   도서대출 버튼
-================================================== */
-
-async function startBookMode() {
-
-  mode = "book";
-
-  locked = false;
-
-
-  document.getElementById("studentBox").style.display =
-    "none";
-
-  document.getElementById("result").style.display =
-    "none";
-
-
-  document.getElementById("pageTitle").innerText =
-    "도서대출";
-
-
-  document.getElementById("guide").innerText =
-    currentStudentName +
-    " 학생이 빌릴 책 QR을 보여주세요.";
-
-
-  document.getElementById("cameraBox").style.display =
-    "block";
-
-
-  await startCamera();
-
-}
-
-
-
-/* ==================================================
+/* =========================================
    책 QR
-================================================== */
+========================================= */
 
 async function handleBook(bookCode) {
 
   document.getElementById("guide").innerText =
-    "책 정보를 확인하고 있습니다...";
+    "책을 확인하고 있습니다...";
 
 
   try {
@@ -698,10 +731,12 @@ async function handleBook(bookCode) {
 
         API_URL +
         "?action=borrow" +
+
         "&code=" +
         encodeURIComponent(
           currentStudentCode
         ) +
+
         "&bookCode=" +
         encodeURIComponent(
           bookCode
@@ -718,15 +753,15 @@ async function handleBook(bookCode) {
       await response.json();
 
 
-
     if (!data.success) {
 
-      showError(data.message);
+      showBookError(
+        data.message
+      );
 
       return;
 
     }
-
 
 
     if (!data.duplicate) {
@@ -738,25 +773,15 @@ async function handleBook(bookCode) {
     }
 
 
-    mode = "menu";
-
-    locked = true;
-
-
     document.getElementById("cameraBox").style.display =
       "none";
 
-    document.getElementById("restartButton").style.display =
-      "none";
 
-    document.getElementById("studentBox").style.display =
-      "none";
-
-    document.getElementById("result").style.display =
+    document.getElementById("borrowResult").style.display =
       "block";
 
 
-    document.getElementById("resultName").innerText =
+    document.getElementById("studentName").innerText =
       currentStudentName;
 
 
@@ -770,30 +795,22 @@ async function handleBook(bookCode) {
         : "✓ 대출 완료";
 
 
-    document.getElementById("bookList").innerHTML =
-      "📖 " + data.title;
-
-
-    document.getElementById("resultTime").innerText =
-      "";
-
-
-    document.getElementById("moreBorrowButton").style.display =
-      "block";
-
-
-    document.getElementById("finishCheckoutButton").style.display =
-      "block";
+    updateBorrowList();
 
 
     document.getElementById("guide").innerText =
-      "다음 작업을 선택하세요.";
+      "책을 더 빌리거나 대출을 완료하세요.";
+
+
+    mode = "waiting";
+
+    locked = true;
 
   }
 
   catch (error) {
 
-    showError(
+    showBookError(
       "도서대출 처리에 실패했습니다."
     );
 
@@ -803,30 +820,95 @@ async function handleBook(bookCode) {
 
 
 
-/* ==================================================
-   하원
-================================================== */
+/* =========================================
+   대출 목록
+========================================= */
 
-async function checkoutStudent() {
+function updateBorrowList() {
 
-  locked = true;
+  const bookList =
+    document.getElementById("bookList");
 
-  mode = "menu";
+
+  if (borrowedTitles.length === 0) {
+
+    bookList.innerHTML =
+      "";
+
+    return;
+
+  }
 
 
-  await stopCamera();
+  bookList.innerHTML =
+
+    "<b>오늘 대출한 책</b><br><br>" +
+
+    borrowedTitles
+      .map(
+        (title, index) =>
+          (index + 1) +
+          ". 📖 " +
+          title
+      )
+      .join("<br>");
+
+}
+
+
+
+/* =========================================
+   더 대출하기
+========================================= */
+
+async function borrowMore() {
+
+  document.getElementById("borrowResult").style.display =
+    "none";
+
+  document.getElementById("checkoutConfirm").style.display =
+    "none";
 
 
   document.getElementById("cameraBox").style.display =
+    "block";
+
+
+  document.getElementById("pageTitle").innerText =
+    "도서대출";
+
+
+  document.getElementById("guide").innerText =
+    currentStudentName +
+    " 학생이 빌릴 책 QR을 보여주세요.";
+
+
+  mode = "book";
+
+  locked = false;
+
+
+  setTimeout(function() {
+
+    startCamera();
+
+  }, 500);
+
+}
+
+
+
+/* =========================================
+   대출 완료
+========================================= */
+
+function finishBorrow() {
+
+  document.getElementById("borrowResult").style.display =
     "none";
 
-  document.getElementById("restartButton").style.display =
-    "none";
 
-  document.getElementById("studentBox").style.display =
-    "none";
-
-  document.getElementById("result").style.display =
+  document.getElementById("checkoutConfirm").style.display =
     "block";
 
 
@@ -834,28 +916,67 @@ async function checkoutStudent() {
     currentStudentName;
 
 
-  document.getElementById("status").className =
-    "";
+  const list =
+    document.getElementById(
+      "confirmBookList"
+    );
 
 
-  document.getElementById("status").innerText =
+  if (borrowedTitles.length > 0) {
+
+    list.innerHTML =
+
+      "<b>대출한 책</b><br><br>" +
+
+      borrowedTitles
+        .map(
+          (title, index) =>
+            (index + 1) +
+            ". 📖 " +
+            title
+        )
+        .join("<br>");
+
+  }
+
+  else {
+
+    list.innerHTML = "";
+
+  }
+
+
+  document.getElementById("guide").innerText =
+    "대출이 완료되었습니다.";
+
+}
+
+
+
+/* =========================================
+   하원
+========================================= */
+
+async function checkoutStudent() {
+
+  document.getElementById("checkoutConfirm").style.display =
+    "none";
+
+
+  document.getElementById("finalResult").style.display =
+    "block";
+
+
+  document.getElementById("finalName").innerText =
+    currentStudentName;
+
+
+  document.getElementById("finalStatus").innerText =
     "하원 처리 중...";
 
 
-  document.getElementById("bookList").innerText =
-    "";
-
-
-  document.getElementById("resultTime").innerText =
-    "";
-
-
-  document.getElementById("moreBorrowButton").style.display =
-    "none";
-
-
-  document.getElementById("finishCheckoutButton").style.display =
-    "none";
+  document.getElementById("guide").innerText =
+    "잠시만 기다려주세요.";
 
 
   try {
@@ -880,18 +1001,25 @@ async function checkoutStudent() {
       await response.json();
 
 
-
     if (!data.success) {
 
-      showError(data.message);
+      document.getElementById("finalStatus").className =
+        "error";
+
+      document.getElementById("finalStatus").innerText =
+        data.message ||
+        "하원 처리에 실패했습니다.";
 
       return;
 
     }
 
 
+    document.getElementById("finalStatus").className =
+      "";
 
-    document.getElementById("status").innerText =
+
+    document.getElementById("finalStatus").innerText =
       data.duplicate
         ? "이미 오늘 하원했습니다."
         : "✓ 하원 완료";
@@ -902,13 +1030,14 @@ async function checkoutStudent() {
       data.books.length > 0
     ) {
 
-      document.getElementById("bookList").innerHTML =
+      document.getElementById("finalBooks").innerHTML =
 
-        "오늘 대출한 책<br><br>" +
+        "<b>오늘 대출한 책</b><br><br>" +
 
         data.books
           .map(
-            title => "📖 " + title
+            title =>
+              "📖 " + title
           )
           .join("<br>");
 
@@ -916,7 +1045,7 @@ async function checkoutStudent() {
 
     else {
 
-      document.getElementById("bookList").innerText =
+      document.getElementById("finalBooks").innerHTML =
         "";
 
     }
@@ -926,18 +1055,49 @@ async function checkoutStudent() {
       "하원시간 " + data.time;
 
 
+    document.getElementById("guide").innerText =
+      "하원이 완료되었습니다.";
+
+
+    /*
+      ★ 중요 ★
+
+      엄마에게 문자를 보내는 기능은
+      여기 HTML에서 직접 보내는 것이 아니라
+
+      Google Apps Script의
+      action=checkout 처리 안에서
+
+      문자 발송 API를 실행해야 함.
+
+      즉,
+      '네, 하원합니다'
+      버튼을 누르면
+
+      action=checkout
+
+      이 호출되므로
+
+      Apps Script에서
+      이 시점에 문자를 발송하면 됨.
+    */
+
+
     setTimeout(
       resetAll,
-      4500
+      5000
     );
 
   }
 
   catch (error) {
 
-    showError(
-      "하원 처리에 실패했습니다."
-    );
+    document.getElementById("finalStatus").className =
+      "error";
+
+
+    document.getElementById("finalStatus").innerText =
+      "하원 처리에 실패했습니다.";
 
   }
 
@@ -945,35 +1105,57 @@ async function checkoutStudent() {
 
 
 
-/* ==================================================
-   오류
-================================================== */
+/* =========================================
+   학생 QR 오류
+========================================= */
 
-function showError(message) {
-
-  mode = "menu";
-
-  locked = true;
-
-
-  stopCamera();
-
+function showStudentError(message) {
 
   document.getElementById("cameraBox").style.display =
     "none";
 
-  document.getElementById("restartButton").style.display =
-    "none";
 
-  document.getElementById("studentBox").style.display =
-    "none";
-
-  document.getElementById("result").style.display =
+  document.getElementById("finalResult").style.display =
     "block";
 
 
-  document.getElementById("resultName").innerText =
-    currentStudentName || "";
+  document.getElementById("finalName").innerText =
+    "";
+
+
+  document.getElementById("finalStatus").className =
+    "error";
+
+
+  document.getElementById("finalStatus").innerText =
+    message || "학생을 찾을 수 없습니다.";
+
+
+  setTimeout(
+    resetAll,
+    3000
+  );
+
+}
+
+
+
+/* =========================================
+   책 QR 오류
+========================================= */
+
+function showBookError(message) {
+
+  document.getElementById("cameraBox").style.display =
+    "none";
+
+
+  document.getElementById("borrowResult").style.display =
+    "block";
+
+
+  document.getElementById("studentName").innerText =
+    currentStudentName;
 
 
   document.getElementById("status").className =
@@ -981,50 +1163,23 @@ function showError(message) {
 
 
   document.getElementById("status").innerText =
-    message || "오류가 발생했습니다.";
+    message || "책을 찾을 수 없습니다.";
 
 
-  document.getElementById("bookList").innerText =
-    "";
+  updateBorrowList();
 
 
-  document.getElementById("resultTime").innerText =
-    "";
+  mode = "waiting";
 
-
-  if (currentStudentCode) {
-
-    document.getElementById("moreBorrowButton").style.display =
-      "block";
-
-    document.getElementById("finishCheckoutButton").style.display =
-      "block";
-
-  }
-
-  else {
-
-    document.getElementById("moreBorrowButton").style.display =
-      "none";
-
-    document.getElementById("finishCheckoutButton").style.display =
-      "none";
-
-
-    setTimeout(
-      resetAll,
-      3500
-    );
-
-  }
+  locked = true;
 
 }
 
 
 
-/* ==================================================
-   다음 학생 준비
-================================================== */
+/* =========================================
+   처음으로
+========================================= */
 
 async function resetAll() {
 
@@ -1043,31 +1198,35 @@ async function resetAll() {
 
 
   document.getElementById("pageTitle").innerText =
-    "하원";
+    "도서대출";
 
 
   document.getElementById("guide").innerText =
     "학생 QR을 보여주세요.";
 
 
-  document.getElementById("studentBox").style.display =
+  document.getElementById("borrowResult").style.display =
     "none";
 
 
-  document.getElementById("result").style.display =
+  document.getElementById("checkoutConfirm").style.display =
     "none";
 
 
-  document.getElementById("status").className =
+  document.getElementById("finalResult").style.display =
+    "none";
+
+
+  document.getElementById("finalStatus").className =
     "";
 
 
-  document.getElementById("moreBorrowButton").style.display =
-    "none";
+  document.getElementById("finalBooks").innerHTML =
+    "";
 
 
-  document.getElementById("finishCheckoutButton").style.display =
-    "none";
+  document.getElementById("resultTime").innerText =
+    "";
 
 
   document.getElementById("cameraBox").style.display =
@@ -1078,15 +1237,15 @@ async function resetAll() {
 
     startCamera();
 
-  }, 350);
+  }, 400);
 
 }
 
 
 
-/* ==================================================
-   처음 페이지 실행
-================================================== */
+/* =========================================
+   첫 실행
+========================================= */
 
 window.addEventListener(
   "load",
@@ -1103,18 +1262,16 @@ window.addEventListener(
 
 
 
-/* ==================================================
-   아이폰 Safari
-   다른 앱 갔다 돌아왔을 때
-================================================== */
+/* =========================================
+   아이폰 Safari 복구
+========================================= */
 
 document.addEventListener(
   "visibilitychange",
   function() {
 
     if (
-      document.visibilityState ===
-      "visible" &&
+      document.visibilityState === "visible" &&
       (
         mode === "student" ||
         mode === "book"
@@ -1126,41 +1283,6 @@ document.addEventListener(
         if (!cameraRunning) {
 
           startCamera();
-
-          return;
-
-        }
-
-
-        const video =
-          document.querySelector(
-            "#reader video"
-          );
-
-
-        if (video) {
-
-          video.setAttribute(
-            "playsinline",
-            ""
-          );
-
-          video.muted = true;
-
-
-          video.play().catch(
-            function() {
-
-              restartCamera();
-
-            }
-          );
-
-        }
-
-        else {
-
-          restartCamera();
 
         }
 
