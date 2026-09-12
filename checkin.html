@@ -2,30 +2,34 @@
 <html lang="ko">
 
 <head>
-
   <meta charset="UTF-8">
 
   <meta name="viewport"
         content="width=device-width,
         initial-scale=1.0,
-        user-scalable=no">
+        maximum-scale=1.0,
+        user-scalable=no,
+        viewport-fit=cover">
 
   <title>학생 등원</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
 
     body {
-      font-family: -apple-system,
-                   BlinkMacSystemFont,
-                   sans-serif;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        sans-serif;
 
       margin: 0;
       padding: 30px 20px;
-
       text-align: center;
-
       background: #f7f7f7;
     }
 
@@ -36,51 +40,79 @@
 
     #guide {
       font-size: 19px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+    }
+
+    #readerWrap {
+      width: 100%;
+      max-width: 500px;
+      margin: auto;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      min-height: 340px;
     }
 
     #reader {
       width: 100%;
-      max-width: 500px;
-      margin: auto;
-      background: white;
+      min-height: 340px;
+      background: #000;
+    }
+
+    #reader video {
+      display: block !important;
+      width: 100% !important;
+      height: 340px !important;
+      object-fit: cover !important;
+      background: #000;
+    }
+
+    #cameraMessage {
+      position: absolute;
+      left: 15px;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: white;
+      font-size: 18px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #restartButton {
+      display: none;
+      margin: 18px auto 0;
+      padding: 14px 22px;
+      border: none;
+      border-radius: 12px;
+      background: #222;
+      color: white;
+      font-size: 18px;
     }
 
     #result {
-
       display: none;
-
       max-width: 450px;
-
       margin: 25px auto;
-
       padding: 30px 20px;
-
       background: white;
-
       border-radius: 18px;
     }
 
     #name {
-
       font-size: 40px;
-
       font-weight: bold;
-
       margin-bottom: 12px;
     }
 
     #status {
-
       font-size: 25px;
-
       font-weight: bold;
     }
 
     #time {
-
       margin-top: 12px;
-
       font-size: 19px;
     }
 
@@ -92,32 +124,42 @@
       font-size: 22px;
       color: #b00020;
     }
-
   </style>
-
 </head>
 
 
 <body>
 
-<h1>등원</h1>
+  <h1>등원</h1>
 
-<div id="guide">
-  학생 QR을 보여주세요.
-</div>
+  <div id="guide">
+    학생 QR을 보여주세요.
+  </div>
 
-<div id="reader"></div>
+  <div id="readerWrap">
+
+    <div id="cameraMessage">
+      카메라를 실행하는 중입니다.
+    </div>
+
+    <div id="reader"></div>
+
+  </div>
+
+  <button id="restartButton" onclick="restartCamera()">
+    카메라 다시 켜기
+  </button>
 
 
-<div id="result">
+  <div id="result">
 
-  <div id="name"></div>
+    <div id="name"></div>
 
-  <div id="status"></div>
+    <div id="status"></div>
 
-  <div id="time"></div>
+    <div id="time"></div>
 
-</div>
+  </div>
 
 
 <script>
@@ -127,6 +169,11 @@ const API_URL =
 
 
 let locked = false;
+
+let html5QrCode = null;
+
+let cameraRunning = false;
+
 
 
 async function onScanSuccess(decodedText) {
@@ -157,6 +204,8 @@ async function onScanSuccess(decodedText) {
 
   name.innerText = "확인 중...";
 
+  status.className = "";
+
   status.innerText = "";
 
   time.innerText = "";
@@ -168,7 +217,11 @@ async function onScanSuccess(decodedText) {
 
       API_URL +
       "?action=checkin&code=" +
-      encodeURIComponent(code)
+      encodeURIComponent(code),
+
+      {
+        cache: "no-store"
+      }
 
     );
 
@@ -184,15 +237,17 @@ async function onScanSuccess(decodedText) {
       status.className = "error";
 
       status.innerText =
-        data.message;
+        data.message || "등록되지 않은 QR입니다.";
 
+    }
 
-    } else if (data.duplicate) {
+    else if (data.duplicate) {
 
       name.innerText =
         data.name;
 
-      status.className = "duplicate";
+      status.className =
+        "duplicate";
 
       status.innerText =
         "이미 오늘 등원했습니다.";
@@ -200,8 +255,9 @@ async function onScanSuccess(decodedText) {
       time.innerText =
         "등원시간 " + data.time;
 
+    }
 
-    } else {
+    else {
 
       name.innerText =
         data.name;
@@ -216,8 +272,11 @@ async function onScanSuccess(decodedText) {
 
     }
 
+  }
 
-  } catch (error) {
+  catch (error) {
+
+    console.error(error);
 
     name.innerText = "";
 
@@ -229,8 +288,6 @@ async function onScanSuccess(decodedText) {
   }
 
 
-  // 같은 QR이 계속 보이면서
-  // 반복 입력되는 것 방지
   setTimeout(function() {
 
     locked = false;
@@ -248,32 +305,272 @@ async function onScanSuccess(decodedText) {
 }
 
 
-const scanner =
-  new Html5QrcodeScanner(
 
-    "reader",
+async function startCamera() {
 
-    {
+  const message =
+    document.getElementById("cameraMessage");
 
-      fps: 10,
+  const restartButton =
+    document.getElementById("restartButton");
 
-      qrbox: {
-        width: 250,
-        height: 250
+
+  restartButton.style.display = "none";
+
+  message.style.display = "block";
+
+  message.innerText =
+    "카메라를 실행하는 중입니다.";
+
+
+  try {
+
+    if (!html5QrCode) {
+
+      html5QrCode =
+        new Html5Qrcode("reader");
+
+    }
+
+
+    if (cameraRunning) {
+
+      try {
+
+        await html5QrCode.stop();
+
       }
 
-    },
+      catch (e) {
+      }
 
-    false
+      cameraRunning = false;
 
-  );
+    }
 
 
-scanner.render(onScanSuccess);
+    await html5QrCode.start(
+
+      {
+        facingMode: "environment"
+      },
+
+      {
+        fps: 10,
+
+        qrbox: function(
+          viewfinderWidth,
+          viewfinderHeight
+        ) {
+
+          const size =
+            Math.floor(
+              Math.min(
+                260,
+                viewfinderWidth * 0.7,
+                viewfinderHeight * 0.7
+              )
+            );
+
+
+          return {
+            width: size,
+            height: size
+          };
+
+        }
+      },
+
+      onScanSuccess,
+
+      function() {
+      }
+
+    );
+
+
+    cameraRunning = true;
+
+    message.style.display = "none";
+
+
+    setTimeout(function() {
+
+      const video =
+        document.querySelector(
+          "#reader video"
+        );
+
+
+      if (video) {
+
+        video.setAttribute(
+          "playsinline",
+          "true"
+        );
+
+        video.setAttribute(
+          "webkit-playsinline",
+          "true"
+        );
+
+        video.muted = true;
+
+        video.autoplay = true;
+
+
+        video.play().catch(function(error) {
+
+          console.log(
+            "video play error",
+            error
+          );
+
+        });
+
+      }
+
+    }, 400);
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "카메라 실행 오류",
+      error
+    );
+
+
+    cameraRunning = false;
+
+    message.style.display = "block";
+
+    message.innerText =
+      "카메라를 열지 못했습니다.\n카메라 권한을 확인해주세요.";
+
+    restartButton.style.display =
+      "block";
+
+  }
+
+}
+
+
+
+async function restartCamera() {
+
+  try {
+
+    if (
+      html5QrCode &&
+      cameraRunning
+    ) {
+
+      await html5QrCode.stop();
+
+    }
+
+  }
+
+  catch (e) {
+  }
+
+
+  cameraRunning = false;
+
+
+  setTimeout(function() {
+
+    startCamera();
+
+  }, 500);
+
+}
+
+
+
+window.addEventListener(
+  "load",
+  function() {
+
+    setTimeout(function() {
+
+      startCamera();
+
+    }, 500);
+
+  }
+);
+
+
+
+document.addEventListener(
+  "visibilitychange",
+  function() {
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+
+      setTimeout(function() {
+
+        const video =
+          document.querySelector(
+            "#reader video"
+          );
+
+
+        if (!video) {
+
+          restartCamera();
+
+          return;
+
+        }
+
+
+        if (
+          video.readyState < 2 ||
+          video.paused
+        ) {
+
+          video.play().catch(function() {
+
+            restartCamera();
+
+          });
+
+        }
+
+      }, 700);
+
+    }
+
+  }
+);
+
+
+
+window.addEventListener(
+  "pageshow",
+  function(event) {
+
+    if (event.persisted) {
+
+      setTimeout(function() {
+
+        restartCamera();
+
+      }, 500);
+
+    }
+
+  }
+);
 
 </script>
 
-
 </body>
-
 </html>
