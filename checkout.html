@@ -2,117 +2,195 @@
 <html lang="ko">
 
 <head>
+  <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width,
+        initial-scale=1.0,
+        maximum-scale=1.0,
+        user-scalable=no,
+        viewport-fit=cover">
 
-<meta name="viewport"
-      content="width=device-width,
-      initial-scale=1.0,
-      user-scalable=no">
+  <title>학생 하원</title>
 
-<title>학생 하원</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
+    body {
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        sans-serif;
 
-body {
-  font-family: -apple-system,
-               BlinkMacSystemFont,
-               sans-serif;
+      margin: 0;
+      padding: 25px 18px;
 
-  margin: 0;
-  padding: 25px 18px;
+      text-align: center;
+      background: #f7f7f7;
+    }
 
-  text-align: center;
-  background: #f7f7f7;
-}
+    h1 {
+      font-size: 32px;
+      margin: 0 0 8px;
+    }
 
-h1 {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
+    #guide {
+      font-size: 19px;
+      margin-bottom: 20px;
+    }
 
-#guide {
-  font-size: 19px;
-  margin-bottom: 20px;
-}
+    /* -------------------------
+       카메라
+    ------------------------- */
 
-#reader {
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
-  background: white;
-}
+    #cameraBox {
+      width: 100%;
+      max-width: 500px;
+      height: 360px;
 
-#studentBox,
-#result {
-  display: none;
+      margin: 0 auto;
 
-  max-width: 450px;
+      position: relative;
 
-  margin: 24px auto;
-  padding: 28px 20px;
+      background: #000;
 
-  background: white;
-  border-radius: 18px;
-}
+      border-radius: 18px;
 
-#studentName,
-#resultName {
-  font-size: 38px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
+      overflow: hidden;
+    }
 
-button {
-  display: block;
+    #reader {
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
 
-  width: 100%;
+    #reader video {
+      width: 100% !important;
+      height: 360px !important;
 
-  padding: 18px;
+      object-fit: cover !important;
 
-  margin: 12px 0;
+      display: block !important;
 
-  border: 0;
-  border-radius: 14px;
+      background: #000;
+    }
 
-  font-size: 23px;
-  font-weight: bold;
-}
+    #cameraMessage {
+      position: absolute;
 
-#borrowButton,
-#moreBorrowButton {
-  background: #e8f1ff;
-}
+      top: 50%;
+      left: 20px;
+      right: 20px;
 
-#checkoutButton,
-#finishCheckoutButton {
-  background: #ededed;
-}
+      transform: translateY(-50%);
 
-#status {
-  font-size: 24px;
-  font-weight: bold;
-}
+      color: white;
 
-#bookList {
-  margin-top: 15px;
-  font-size: 20px;
-  line-height: 1.6;
-}
+      font-size: 18px;
 
-#resultTime {
-  margin-top: 12px;
-  font-size: 19px;
-}
+      z-index: 10;
 
-.error {
-  color: #b00020;
-}
+      pointer-events: none;
 
-</style>
+      white-space: pre-line;
+    }
 
+    #restartButton {
+      display: none;
+
+      max-width: 500px;
+
+      margin: 18px auto 0;
+
+      background: #222;
+      color: white;
+    }
+
+
+    /* -------------------------
+       학생 / 결과
+    ------------------------- */
+
+    #studentBox,
+    #result {
+      display: none;
+
+      max-width: 450px;
+
+      margin: 24px auto;
+
+      padding: 28px 20px;
+
+      background: white;
+
+      border-radius: 18px;
+    }
+
+    #studentName,
+    #resultName {
+      font-size: 38px;
+      font-weight: bold;
+
+      margin-bottom: 20px;
+    }
+
+    button {
+      display: block;
+
+      width: 100%;
+
+      padding: 18px;
+
+      margin: 12px 0;
+
+      border: 0;
+      border-radius: 14px;
+
+      font-size: 23px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    #borrowButton,
+    #moreBorrowButton {
+      background: #e8f1ff;
+    }
+
+    #checkoutButton,
+    #finishCheckoutButton {
+      background: #ededed;
+    }
+
+    #status {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #bookList {
+      margin-top: 15px;
+
+      font-size: 20px;
+
+      line-height: 1.6;
+    }
+
+    #resultTime {
+      margin-top: 12px;
+
+      font-size: 19px;
+    }
+
+    .error {
+      color: #b00020;
+    }
+  </style>
 </head>
 
 
@@ -124,7 +202,23 @@ button {
   학생 QR을 보여주세요.
 </div>
 
-<div id="reader"></div>
+
+<div id="cameraBox">
+
+  <div id="cameraMessage">
+    카메라를 실행하는 중입니다.
+  </div>
+
+  <div id="reader"></div>
+
+</div>
+
+
+<button id="restartButton"
+        onclick="restartCamera()">
+  카메라 다시 켜기
+</button>
+
 
 
 <div id="studentBox">
@@ -142,6 +236,7 @@ button {
   </button>
 
 </div>
+
 
 
 <div id="result">
@@ -169,10 +264,12 @@ button {
 </div>
 
 
+
 <script>
 
 const API_URL =
 "https://script.google.com/macros/s/AKfycbyx8L6wf-PMZMQYBd1_ViAUiJ65ByHW4N7_Sq2ItXKbFSOW69MpV6boP81GX_wuiKnt5A/exec";
+
 
 let mode = "student";
 
@@ -184,9 +281,21 @@ let locked = false;
 let borrowedTitles = [];
 
 
-// --------------------------------------------------
-// QR 인식
-// --------------------------------------------------
+/* -------------------------
+   카메라 상태
+------------------------- */
+
+let html5QrCode = null;
+
+let cameraRunning = false;
+
+let cameraStarting = false;
+
+
+
+/* ==================================================
+   QR 인식
+================================================== */
 
 function onScanSuccess(decodedText) {
 
@@ -195,9 +304,12 @@ function onScanSuccess(decodedText) {
   const code =
     decodedText.trim().toUpperCase();
 
+
   if (mode === "student") {
 
     locked = true;
+
+    stopCamera();
 
     handleStudent(code);
 
@@ -207,6 +319,8 @@ function onScanSuccess(decodedText) {
 
     locked = true;
 
+    stopCamera();
+
     handleBook(code);
 
   }
@@ -214,27 +328,265 @@ function onScanSuccess(decodedText) {
 }
 
 
-// --------------------------------------------------
-// 학생 QR
-// --------------------------------------------------
+
+/* ==================================================
+   카메라 시작
+================================================== */
+
+async function startCamera() {
+
+  if (cameraRunning || cameraStarting) {
+    return;
+  }
+
+
+  cameraStarting = true;
+
+
+  const cameraBox =
+    document.getElementById("cameraBox");
+
+  const cameraMessage =
+    document.getElementById("cameraMessage");
+
+  const restartButton =
+    document.getElementById("restartButton");
+
+
+  cameraBox.style.display =
+    "block";
+
+  cameraMessage.style.display =
+    "block";
+
+  cameraMessage.innerText =
+    "카메라를 실행하는 중입니다.";
+
+  restartButton.style.display =
+    "none";
+
+
+  try {
+
+    if (!html5QrCode) {
+
+      html5QrCode =
+        new Html5Qrcode("reader");
+
+    }
+
+
+    await html5QrCode.start(
+
+      {
+        facingMode: "environment"
+      },
+
+      {
+        fps: 10,
+
+        qrbox: function(
+          viewfinderWidth,
+          viewfinderHeight
+        ) {
+
+          const size =
+            Math.floor(
+
+              Math.min(
+                250,
+                viewfinderWidth * 0.7,
+                viewfinderHeight * 0.7
+              )
+
+            );
+
+
+          return {
+
+            width: size,
+            height: size
+
+          };
+
+        },
+
+        disableFlip: false
+      },
+
+      onScanSuccess,
+
+      function() {
+        /* QR 미인식은 정상 상태 */
+      }
+
+    );
+
+
+    cameraRunning = true;
+
+    cameraMessage.style.display =
+      "none";
+
+
+    /*
+      iPhone Safari 대응
+    */
+
+    setTimeout(function() {
+
+      const video =
+        document.querySelector(
+          "#reader video"
+        );
+
+
+      if (video) {
+
+        video.setAttribute(
+          "playsinline",
+          ""
+        );
+
+        video.setAttribute(
+          "webkit-playsinline",
+          ""
+        );
+
+        video.muted = true;
+
+        video.autoplay = true;
+
+
+        video.play().catch(
+          function() {
+          }
+        );
+
+      }
+
+    }, 300);
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "카메라 실행 오류:",
+      error
+    );
+
+
+    cameraRunning = false;
+
+
+    cameraMessage.style.display =
+      "block";
+
+    cameraMessage.innerText =
+      "카메라를 열 수 없습니다.\n카메라 권한을 확인해주세요.";
+
+    restartButton.style.display =
+      "block";
+
+  }
+
+  finally {
+
+    cameraStarting = false;
+
+  }
+
+}
+
+
+
+/* ==================================================
+   카메라 정지
+================================================== */
+
+async function stopCamera() {
+
+  if (
+    !html5QrCode ||
+    !cameraRunning
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    await html5QrCode.stop();
+
+  }
+
+  catch (error) {
+
+    console.log(
+      "카메라 정지:",
+      error
+    );
+
+  }
+
+
+  cameraRunning = false;
+
+}
+
+
+
+/* ==================================================
+   카메라 재시작
+================================================== */
+
+async function restartCamera() {
+
+  await stopCamera();
+
+
+  setTimeout(function() {
+
+    startCamera();
+
+  }, 400);
+
+}
+
+
+
+/* ==================================================
+   학생 QR
+================================================== */
 
 async function handleStudent(code) {
 
   document.getElementById("guide").innerText =
     "학생 확인 중...";
 
+
   try {
 
-    const response = await fetch(
+    const response =
+      await fetch(
 
-      API_URL +
-      "?action=student&code=" +
-      encodeURIComponent(code)
+        API_URL +
+        "?action=student&code=" +
+        encodeURIComponent(code),
 
-    );
+        {
+          cache: "no-store"
+        }
+
+      );
+
 
     const data =
       await response.json();
+
 
 
     if (!data.success) {
@@ -244,6 +596,7 @@ async function handleStudent(code) {
       return;
 
     }
+
 
 
     currentStudentCode =
@@ -257,7 +610,10 @@ async function handleStudent(code) {
     mode = "menu";
 
 
-    document.getElementById("reader").style.display =
+    document.getElementById("cameraBox").style.display =
+      "none";
+
+    document.getElementById("restartButton").style.display =
       "none";
 
     document.getElementById("result").style.display =
@@ -266,8 +622,10 @@ async function handleStudent(code) {
     document.getElementById("studentBox").style.display =
       "block";
 
+
     document.getElementById("studentName").innerText =
       data.name;
+
 
     document.getElementById("guide").innerText =
       "원하는 항목을 선택하세요.";
@@ -285,11 +643,12 @@ async function handleStudent(code) {
 }
 
 
-// --------------------------------------------------
-// 도서대출 버튼
-// --------------------------------------------------
 
-function startBookMode() {
+/* ==================================================
+   도서대출 버튼
+================================================== */
+
+async function startBookMode() {
 
   mode = "book";
 
@@ -302,43 +661,62 @@ function startBookMode() {
   document.getElementById("result").style.display =
     "none";
 
-  document.getElementById("reader").style.display =
-    "block";
 
   document.getElementById("pageTitle").innerText =
     "도서대출";
+
 
   document.getElementById("guide").innerText =
     currentStudentName +
     " 학생이 빌릴 책 QR을 보여주세요.";
 
+
+  document.getElementById("cameraBox").style.display =
+    "block";
+
+
+  await startCamera();
+
 }
 
 
-// --------------------------------------------------
-// 책 QR
-// --------------------------------------------------
+
+/* ==================================================
+   책 QR
+================================================== */
 
 async function handleBook(bookCode) {
 
   document.getElementById("guide").innerText =
     "책 정보를 확인하고 있습니다...";
 
+
   try {
 
-    const response = await fetch(
+    const response =
+      await fetch(
 
-      API_URL +
-      "?action=borrow" +
-      "&code=" +
-      encodeURIComponent(currentStudentCode) +
-      "&bookCode=" +
-      encodeURIComponent(bookCode)
+        API_URL +
+        "?action=borrow" +
+        "&code=" +
+        encodeURIComponent(
+          currentStudentCode
+        ) +
+        "&bookCode=" +
+        encodeURIComponent(
+          bookCode
+        ),
 
-    );
+        {
+          cache: "no-store"
+        }
+
+      );
+
 
     const data =
       await response.json();
+
 
 
     if (!data.success) {
@@ -350,9 +728,12 @@ async function handleBook(bookCode) {
     }
 
 
+
     if (!data.duplicate) {
 
-      borrowedTitles.push(data.title);
+      borrowedTitles.push(
+        data.title
+      );
 
     }
 
@@ -362,7 +743,10 @@ async function handleBook(bookCode) {
     locked = true;
 
 
-    document.getElementById("reader").style.display =
+    document.getElementById("cameraBox").style.display =
+      "none";
+
+    document.getElementById("restartButton").style.display =
       "none";
 
     document.getElementById("studentBox").style.display =
@@ -418,9 +802,10 @@ async function handleBook(bookCode) {
 }
 
 
-// --------------------------------------------------
-// 하원
-// --------------------------------------------------
+
+/* ==================================================
+   하원
+================================================== */
 
 async function checkoutStudent() {
 
@@ -429,10 +814,16 @@ async function checkoutStudent() {
   mode = "menu";
 
 
-  document.getElementById("studentBox").style.display =
+  await stopCamera();
+
+
+  document.getElementById("cameraBox").style.display =
     "none";
 
-  document.getElementById("reader").style.display =
+  document.getElementById("restartButton").style.display =
+    "none";
+
+  document.getElementById("studentBox").style.display =
     "none";
 
   document.getElementById("result").style.display =
@@ -469,16 +860,25 @@ async function checkoutStudent() {
 
   try {
 
-    const response = await fetch(
+    const response =
+      await fetch(
 
-      API_URL +
-      "?action=checkout&code=" +
-      encodeURIComponent(currentStudentCode)
+        API_URL +
+        "?action=checkout&code=" +
+        encodeURIComponent(
+          currentStudentCode
+        ),
 
-    );
+        {
+          cache: "no-store"
+        }
+
+      );
+
 
     const data =
       await response.json();
+
 
 
     if (!data.success) {
@@ -488,6 +888,7 @@ async function checkoutStudent() {
       return;
 
     }
+
 
 
     document.getElementById("status").innerText =
@@ -525,21 +926,6 @@ async function checkoutStudent() {
       "하원시간 " + data.time;
 
 
-    /*
-      나중에 솔라피 문자를 붙일 위치.
-
-      여기서 data.books 안에
-      오늘 대출한 책 제목들이 모두 들어 있음.
-
-      예:
-      [
-        "긴긴밤",
-        "푸른 사자 와니니",
-        "마당을 나온 암탉"
-      ]
-    */
-
-
     setTimeout(
       resetAll,
       4500
@@ -558,9 +944,10 @@ async function checkoutStudent() {
 }
 
 
-// --------------------------------------------------
-// 오류
-// --------------------------------------------------
+
+/* ==================================================
+   오류
+================================================== */
 
 function showError(message) {
 
@@ -569,7 +956,13 @@ function showError(message) {
   locked = true;
 
 
-  document.getElementById("reader").style.display =
+  stopCamera();
+
+
+  document.getElementById("cameraBox").style.display =
+    "none";
+
+  document.getElementById("restartButton").style.display =
     "none";
 
   document.getElementById("studentBox").style.display =
@@ -588,7 +981,7 @@ function showError(message) {
 
 
   document.getElementById("status").innerText =
-    message;
+    message || "오류가 발생했습니다.";
 
 
   document.getElementById("bookList").innerText =
@@ -598,12 +991,6 @@ function showError(message) {
   document.getElementById("resultTime").innerText =
     "";
 
-
-  /*
-    학생을 이미 인식한 상태에서
-    책 오류가 난 경우에는
-    다시 선택할 수 있도록 버튼 표시
-  */
 
   if (currentStudentCode) {
 
@@ -623,6 +1010,7 @@ function showError(message) {
     document.getElementById("finishCheckoutButton").style.display =
       "none";
 
+
     setTimeout(
       resetAll,
       3500
@@ -633,11 +1021,15 @@ function showError(message) {
 }
 
 
-// --------------------------------------------------
-// 다음 학생 준비
-// --------------------------------------------------
 
-function resetAll() {
+/* ==================================================
+   다음 학생 준비
+================================================== */
+
+async function resetAll() {
+
+  await stopCamera();
+
 
   mode = "student";
 
@@ -656,10 +1048,6 @@ function resetAll() {
 
   document.getElementById("guide").innerText =
     "학생 QR을 보여주세요.";
-
-
-  document.getElementById("reader").style.display =
-    "block";
 
 
   document.getElementById("studentBox").style.display =
@@ -681,38 +1069,109 @@ function resetAll() {
   document.getElementById("finishCheckoutButton").style.display =
     "none";
 
+
+  document.getElementById("cameraBox").style.display =
+    "block";
+
+
+  setTimeout(function() {
+
+    startCamera();
+
+  }, 350);
+
 }
 
 
-// --------------------------------------------------
-// QR 스캐너
-// --------------------------------------------------
 
-const scanner =
-  new Html5QrcodeScanner(
+/* ==================================================
+   처음 페이지 실행
+================================================== */
 
-    "reader",
+window.addEventListener(
+  "load",
+  function() {
 
-    {
+    setTimeout(function() {
 
-      fps: 10,
+      startCamera();
 
-      qrbox: {
-        width: 250,
-        height: 250
-      }
+    }, 400);
 
-    },
-
-    false
-
-  );
+  }
+);
 
 
-scanner.render(onScanSuccess);
+
+/* ==================================================
+   아이폰 Safari
+   다른 앱 갔다 돌아왔을 때
+================================================== */
+
+document.addEventListener(
+  "visibilitychange",
+  function() {
+
+    if (
+      document.visibilityState ===
+      "visible" &&
+      (
+        mode === "student" ||
+        mode === "book"
+      )
+    ) {
+
+      setTimeout(function() {
+
+        if (!cameraRunning) {
+
+          startCamera();
+
+          return;
+
+        }
+
+
+        const video =
+          document.querySelector(
+            "#reader video"
+          );
+
+
+        if (video) {
+
+          video.setAttribute(
+            "playsinline",
+            ""
+          );
+
+          video.muted = true;
+
+
+          video.play().catch(
+            function() {
+
+              restartCamera();
+
+            }
+          );
+
+        }
+
+        else {
+
+          restartCamera();
+
+        }
+
+      }, 600);
+
+    }
+
+  }
+);
 
 </script>
 
 </body>
-
 </html>
